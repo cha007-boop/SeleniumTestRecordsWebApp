@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SeleniumTestRecordsWebApp
 {
@@ -12,7 +13,7 @@ namespace SeleniumTestRecordsWebApp
         public void SetUp()
         {
             var options = new ChromeOptions();
-            //options.AddArgument("--headless=new");
+            options.AddArgument("--headless=new");
             options.AddArgument("--window-size=1280,1000");
 
             _driver = new ChromeDriver(options);
@@ -29,7 +30,28 @@ namespace SeleniumTestRecordsWebApp
         [TestMethod]
         public void TableOfRecordsDisplayedOnPageLoad()
         {
-            // Arrage
+            // Arrange done in SetUp
+
+            // Act
+            var table = _driver.FindElement(By.TagName("tbody"));
+            var recordRows = table.FindElements(By.TagName("tr"));
+
+            // Assert
+            Assert.IsNotEmpty(recordRows);
+            
+        }
+
+        [TestMethod]
+        public void HeaderTextDisplayedOnPageLoad()
+        {
+            // Arrange done in SetUp
+            string expectedHeaderText = "RESTful records";
+
+            // Act
+            var headerText = _driver.FindElement(By.ClassName("card-title")).Text;
+
+            // Assert
+            Assert.AreEqual(expectedHeaderText, headerText);
 
         }
     }
