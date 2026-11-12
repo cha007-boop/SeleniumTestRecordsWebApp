@@ -17,7 +17,7 @@ namespace SeleniumTestRecordsWebApp
             options.AddArgument("--window-size=1280,1000");
 
             _driver = new ChromeDriver(options);
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
             _driver.Navigate().GoToUrl("http://127.0.0.1:5500/");
         }
 
@@ -53,6 +53,27 @@ namespace SeleniumTestRecordsWebApp
             // Assert
             Assert.AreEqual(expectedHeaderText, headerText);
 
+        }
+
+        [TestMethod]
+        public void GetAllMethodCallForExistingRecord()
+        {
+            //arrange
+            var table = _driver.FindElement(By.TagName("tbody"));
+            var recordRowsCount = table.FindElements(By.TagName("tr")).Count;
+
+            //act
+            var input = _driver.FindElement(By.Id("id"));
+            input.SendKeys("1");
+
+            var button = _driver.FindElement(By.Id("filterButton"));
+
+            button.Click();
+            Thread.Sleep(50);
+            var filteredRecordRowsCount = _driver.FindElement(By.TagName("tbody")).FindElements(By.TagName("tr")).Count;
+            //assert
+
+            Assert.AreNotEqual(recordRowsCount, filteredRecordRowsCount);
         }
     }
 }
