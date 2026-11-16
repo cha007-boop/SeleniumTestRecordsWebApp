@@ -75,5 +75,86 @@ namespace SeleniumTestRecordsWebApp
 
             Assert.AreNotEqual(recordRowsCount, filteredRecordRowsCount);
         }
+
+        [TestMethod]
+        public void LoginDropDownIsNotDisplayedInitially()
+        {
+            // Arrange done in setup
+            // Act & Assert
+            Assert.IsFalse(_driver.FindElement(By.ClassName("dropdown-menu")).Displayed);
+            
+        }
+
+        public void LoginButtonOpensLoginDropdownMenu(string username, string password, string role)
+        {
+            // Arrange
+            var loginButton = _driver.FindElement(By.Id("loginDropdown"));
+
+            // Act
+            loginButton.Click();
+
+            // Assert
+            Assert.IsTrue(_driver.FindElement(By.ClassName("dropdown-menu")).Displayed);
+        }
+
+        [TestMethod]
+        public void LoginIndicatorShowsNotLoggedInInitially()
+        {
+            // Arrange
+            string expectedText = "Not logged in";
+
+            // Act & Assert
+            Assert.AreEqual(expectedText, _driver.FindElement(By.Id("loginStatusSpan")).Text);
+        }
+
+        [TestMethod]
+        [DataRow("user", "1234", "user")]
+        [DataRow("admin", "1234", "admin")]
+        public void LoginSuccessfullyLogsIn(string username, string password, string role)
+        {
+            // Arrange
+            var loginDropdown = _driver.FindElement(By.Id("loginDropdown"));
+            var userNameField = _driver.FindElement(By.Id("loginUsername"));
+            var passwordField = _driver.FindElement(By.Id("loginPassword"));
+            var loginButton = _driver.FindElement(By.Id("loginButton"));
+            var expectedText = "Logged in as " + role;
+
+            // Act
+            loginDropdown.Click();
+            userNameField.SendKeys(username);
+            passwordField.SendKeys(password);
+            loginButton.Click();
+
+            Thread.Sleep(100);
+            string loginStatusText = _driver.FindElement(By.Id("loginStatusSpan")).Text;
+
+            // Assert
+            Assert.AreEqual(expectedText, loginStatusText);
+        }
+
+        [TestMethod]
+        [DataRow("user", "wrongPassword")]
+        [DataRow("admin", "wrongPassword")]
+        [DataRow("nonExistentUsername1234512uh23i", "1234")]
+        [DataRow("doesntexist", "wrongPassword")]
+        public void IncorrectLoginInfoShowsErrorMessage(string username, string password)
+        {
+            // Arrange
+            var loginDropdown = _driver.FindElement(By.Id("loginDropdown"));
+            var userNameField = _driver.FindElement(By.Id("loginUsername"));
+            var passwordField = _driver.FindElement(By.Id("loginPassword"));
+            var loginButton = _driver.FindElement(By.Id("loginButton"));
+
+            // Act
+            loginDropdown.Click();
+            userNameField.SendKeys(username);
+            passwordField.SendKeys(password);
+            loginButton.Click();
+
+            Thread.Sleep(100);
+            var authMessage = _driver.FindElement(By.Id("dropdownAuthMessage"));
+
+            Assert.IsTrue(authMessage.Displayed);
+        }
     }
 }
