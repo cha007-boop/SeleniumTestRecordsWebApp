@@ -6,6 +6,7 @@ using OpenQA.Selenium.Interactions;
 
 namespace SeleniumTestRecordsWebApp
 {
+    [DoNotParallelize]
     [TestClass]
     public sealed class SeleniumWebAppTests
     {
@@ -19,7 +20,7 @@ namespace SeleniumTestRecordsWebApp
             options.AddArgument("--window-size=1280,1000");
 
             _driver = new ChromeDriver(options);
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(50);
+            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
             _driver.Navigate().GoToUrl("http://127.0.0.1:5500/");
         }
 
@@ -187,6 +188,135 @@ namespace SeleniumTestRecordsWebApp
         }
 
         [TestMethod]
+        public void UpdateSuccessfullyUpdates()
+        {
+            // Arrange
+            LoginSetup();
+            Thread.Sleep(100);
+
+            var table = _driver.FindElement(By.TagName("tbody"));
+            var recordRow = table.FindElements(By.TagName("tr")).Last();
+
+            var updateButton = recordRow.FindElement(By.Id("updateButton"));
+            new Actions(_driver)
+                .MoveToElement(updateButton)
+                .Perform();
+
+            updateButton.Click();
+
+            Thread.Sleep(100);
+
+            string newTitle = "Updated Title";
+            string newArtist = "Updated Artist";
+            int newDuration = 300;
+            int newPubYear = 2022;
+            // Act
+
+            var titleField = _driver.FindElement(By.Id("edittitle"));
+            var artistField = _driver.FindElement(By.Id("editartist"));
+            var durationField = _driver.FindElement(By.Id("editduration"));
+            var pubYearField = _driver.FindElement(By.Id("editpubyear"));
+
+            // Clear fields before sending new values
+
+            titleField.Clear();
+            titleField.SendKeys(newTitle);
+
+            artistField.Clear();
+            artistField.SendKeys(newArtist);
+
+            durationField.Clear();
+            durationField.SendKeys(newDuration.ToString());
+
+            pubYearField.Clear();
+            pubYearField.SendKeys(newPubYear.ToString());
+
+            var saveButton = _driver.FindElement(By.Id("confirmUpdate"));
+            saveButton.Click();
+            Thread.Sleep(200);
+            // Assert
+            recordRow = _driver.FindElement(By.TagName("tbody")).FindElements(By.TagName("tr")).Last();
+
+            titleField = recordRow.FindElement(By.Id("recordTitle"));
+            artistField = recordRow.FindElement(By.Id("recordArtist"));
+            durationField = recordRow.FindElement(By.Id("recordDuration"));
+            pubYearField = recordRow.FindElement(By.Id("recordPubYear"));
+
+            Assert.AreEqual(newTitle, titleField.Text);
+            Assert.AreEqual(newArtist, artistField.Text);
+            Assert.AreEqual(newDuration.ToString(), durationField.Text);
+            Assert.AreEqual(newPubYear.ToString(), pubYearField.Text);
+        }
+
+        [TestMethod]
+        public void UpdateDoesntChangeValuesWhenCancelIsClicked()
+        {
+            // Arrange
+            LoginSetup();
+            Thread.Sleep(100);
+
+            var table = _driver.FindElement(By.TagName("tbody"));
+            var recordRow = table.FindElements(By.TagName("tr")).Last();
+
+            var initialTitleFieldText = recordRow.FindElement(By.Id("recordTitle")).Text;
+            var initialArtistFieldText = recordRow.FindElement(By.Id("recordArtist")).Text;
+            var initialDurationFieldText = recordRow.FindElement(By.Id("recordDuration")).Text;
+            var initialPubYearFieldText = recordRow.FindElement(By.Id("recordPubYear")).Text;
+
+            var updateButton = recordRow.FindElement(By.Id("updateButton"));
+            new Actions(_driver)
+                .MoveToElement(updateButton)
+                .Perform();
+
+            updateButton.Click();
+
+            Thread.Sleep(100);
+
+            string newTitle = "Updated Title other";
+            string newArtist = "Updated Artist other";
+            int newDuration = 5320;
+            int newPubYear = 2000;
+            // Act
+
+            var titleField = _driver.FindElement(By.Id("edittitle"));
+            var artistField = _driver.FindElement(By.Id("editartist"));
+            var durationField = _driver.FindElement(By.Id("editduration"));
+            var pubYearField = _driver.FindElement(By.Id("editpubyear"));
+
+            // Clear fields before sending new values
+
+            titleField.Clear();
+            titleField.SendKeys(newTitle);
+
+            artistField.Clear();
+            artistField.SendKeys(newArtist);
+
+            durationField.Clear();
+            durationField.SendKeys(newDuration.ToString());
+
+            pubYearField.Clear();
+            pubYearField.SendKeys(newPubYear.ToString());
+
+            var saveButton = _driver.FindElement(By.Id("cancelUpdate"));
+            saveButton.Click();
+            Thread.Sleep(200);
+            // Assert
+            recordRow = _driver.FindElement(By.TagName("tbody")).FindElements(By.TagName("tr")).Last();
+
+            titleField = recordRow.FindElement(By.Id("recordTitle"));
+            artistField = recordRow.FindElement(By.Id("recordArtist"));
+            durationField = recordRow.FindElement(By.Id("recordDuration"));
+            pubYearField = recordRow.FindElement(By.Id("recordPubYear"));
+
+            Assert.AreEqual(initialTitleFieldText, titleField.Text);
+            Assert.AreEqual(initialArtistFieldText, artistField.Text);
+            Assert.AreEqual(initialDurationFieldText, durationField.Text);
+            Assert.AreEqual(initialPubYearFieldText, pubYearField.Text);
+
+        }
+
+
+        [TestMethod]
         public void DeleteSuccessfullyRemovesRecord()
         {
             // arrange
@@ -196,7 +326,7 @@ namespace SeleniumTestRecordsWebApp
             var recordRows = table.FindElements(By.TagName("tr"));
             
 
-            var deleteButton = recordRows.Last().FindElement(By.TagName("button"));
+            var deleteButton = recordRows.Last().FindElement(By.Id("deleteButton"));
             var modalConfirmButton = _driver.FindElement(By.Id("modalDeleteButton"));
             // act
             new Actions(_driver)
