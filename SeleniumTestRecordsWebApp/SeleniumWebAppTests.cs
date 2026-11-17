@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Interactions;
 
 namespace SeleniumTestRecordsWebApp
 {
@@ -126,7 +127,7 @@ namespace SeleniumTestRecordsWebApp
             passwordField.SendKeys(password);
             loginButton.Click();
 
-            Thread.Sleep(100);
+            Thread.Sleep(200);
             string loginStatusText = _driver.FindElement(By.Id("loginStatusSpan")).Text;
 
             // Assert
@@ -190,13 +191,17 @@ namespace SeleniumTestRecordsWebApp
         {
             // arrange
             LoginSetup();
+            Thread.Sleep(100);
             var table = _driver.FindElement(By.TagName("tbody"));
             var recordRows = table.FindElements(By.TagName("tr"));
+            
 
-            var deleteButton = recordRows.Last().FindElement(By.Id("deleteButton"));
+            var deleteButton = recordRows.Last().FindElement(By.TagName("button"));
             var modalConfirmButton = _driver.FindElement(By.Id("modalDeleteButton"));
             // act
-            Thread.Sleep(200);
+            new Actions(_driver)
+                .MoveToElement(deleteButton)
+                .Perform();
 
             deleteButton.Click();
             Thread.Sleep(100);
@@ -222,7 +227,7 @@ namespace SeleniumTestRecordsWebApp
             userNameField.SendKeys("user");
             passwordField.SendKeys("1234");
             loginButton.Click();
-            Thread.Sleep(200);
+
         }
     }
 }
