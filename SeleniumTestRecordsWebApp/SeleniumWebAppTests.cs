@@ -1,6 +1,7 @@
-﻿using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+﻿using System.Data;
 using System.Diagnostics.CodeAnalysis;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace SeleniumTestRecordsWebApp
 {
@@ -17,7 +18,7 @@ namespace SeleniumTestRecordsWebApp
             options.AddArgument("--window-size=1280,1000");
 
             _driver = new ChromeDriver(options);
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
+            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(50);
             _driver.Navigate().GoToUrl("http://127.0.0.1:5500/");
         }
 
@@ -67,9 +68,9 @@ namespace SeleniumTestRecordsWebApp
             input.SendKeys("1");
 
             var button = _driver.FindElement(By.Id("filterButton"));
-
+            Thread.Sleep(100);
             button.Click();
-            Thread.Sleep(50);
+            Thread.Sleep(150);
             var filteredRecordRowsCount = _driver.FindElement(By.TagName("tbody")).FindElements(By.TagName("tr")).Count;
             //assert
 
@@ -155,6 +156,73 @@ namespace SeleniumTestRecordsWebApp
             var authMessage = _driver.FindElement(By.Id("dropdownAuthMessage"));
 
             Assert.IsTrue(authMessage.Displayed);
+        }
+        [TestMethod]
+        public void AddRecordSuccessfullyAdds()
+        {
+            // arrange
+            LoginSetup();
+            var table = _driver.FindElement(By.TagName("tbody"));
+            var recordRows = table.FindElements(By.TagName("tr"));
+
+            var titleField = _driver.FindElement(By.Id("newTitle"));
+            var artistField = _driver.FindElement(By.Id("newArtist"));
+            var durationField = _driver.FindElement(By.Id("newDuration"));
+            var pubYearField = _driver.FindElement(By.Id("newPubYear"));
+            var addButton = _driver.FindElement(By.Id("addButton"));
+            // act
+            titleField.SendKeys("title1");
+            artistField.SendKeys("DuranDuran");
+            durationField.SendKeys("270");
+            pubYearField.SendKeys("2001");
+            Thread.Sleep(100);
+
+            addButton.Click();
+            Thread.Sleep(100);
+
+            var recordRowsAfter = _driver.FindElement(By.TagName("tbody")).FindElements(By.TagName("tr"));
+            // assert
+            Assert.HasCount(recordRows.Count + 1, recordRowsAfter);
+        }
+
+        [TestMethod]
+        public void DeleteSuccessfullyRemovesRecord()
+        {
+            // arrange
+            LoginSetup();
+            var table = _driver.FindElement(By.TagName("tbody"));
+            var recordRows = table.FindElements(By.TagName("tr"));
+
+            var deleteButton = recordRows.Last().FindElement(By.Id("deleteButton"));
+            var modalConfirmButton = _driver.FindElement(By.Id("modalDeleteButton"));
+            // act
+            Thread.Sleep(200);
+
+            deleteButton.Click();
+            Thread.Sleep(100);
+
+            modalConfirmButton.Click();
+            Thread.Sleep(100);
+
+            var recordRowsAfter = _driver.FindElement(By.TagName("tbody")).FindElements(By.TagName("tr"));
+            // assert
+            Assert.HasCount(recordRows.Count - 1, recordRowsAfter);
+        }
+
+        private void LoginSetup()
+        {
+            // Arrange
+            var loginDropdown = _driver.FindElement(By.Id("loginDropdown"));
+            var userNameField = _driver.FindElement(By.Id("loginUsername"));
+            var passwordField = _driver.FindElement(By.Id("loginPassword"));
+            var loginButton = _driver.FindElement(By.Id("loginButton"));
+
+            // Act
+            loginDropdown.Click();
+            userNameField.SendKeys("user");
+            passwordField.SendKeys("1234");
+            loginButton.Click();
+            Thread.Sleep(200);
         }
     }
 }
